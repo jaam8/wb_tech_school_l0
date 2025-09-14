@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
 )
 
 type Config struct {
@@ -23,13 +22,13 @@ type Config struct {
 }
 
 func New(ctx context.Context, config Config) (*pgxpool.Pool, error) {
-	connString := config.GetConnString()
-	connString += fmt.Sprintf("&pool_max_conns=%d&pool_min_conns=%d",
+	dsn := config.GetDsn()
+	dsn += fmt.Sprintf("&pool_max_conns=%d&pool_min_conns=%d",
 		config.MaxConns,
 		config.MinConns,
 	)
 
-	conn, err := pgxpool.New(ctx, connString)
+	conn, err := pgxpool.New(ctx, dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %v", err)
 	}
@@ -38,30 +37,32 @@ func New(ctx context.Context, config Config) (*pgxpool.Pool, error) {
 }
 
 func Migrate(ctx context.Context, config Config, migrationsPath string) error {
-	connString := config.GetConnString()
+	dsn := config.GetDsn()
 
-	m, err := migrate.New(
-		migrationsPath, // "file:///app/db/migrations"
-		connString,
-	)
+	db, err := goose.OpenDBWithDriver("pgx", dsn)
 	if err != nil {
-		return fmt.Errorf("failed to create migration instance: %v", err)
+		log.Fatalf("failed to open db: %v", err)
+	}
+	defer db.Close()
+
+	if err = goose.SetDialect("postgres"); err != nil {
+		log.Fatalf("failed to set dialect: %v", err)
 	}
 
-	if err = m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return fmt.Errorf("failed to migrate database: %v", err)
+	if err = goose.Up(db, migrationsPath); err != nil && !errors.Is(err, goose.ErrNoMigrations) {
+		log.Fatalf("failed to run migrations: %v", err)
 	}
 	log.Println("migrated successfully")
 	return nil
 }
 
-func (c *Config) GetConnString() string {
-	connString := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
+func (c *Config) GetDsn() string {
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
 		c.Username,
 		c.Password,
 		c.Host,
 		c.Port,
 		c.Database,
 	)
-	return connString
+	return dsn
 }
