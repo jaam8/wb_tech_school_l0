@@ -19,7 +19,7 @@ func NewKafkaProducerAdapter(producer *kafka.Writer) *KafkaProducerAdapter {
 }
 
 func (a *KafkaProducerAdapter) SendOrder(ctx context.Context, orders ...models.Order) error {
-	msgs := make([]kafka.Message, len(orders))
+	msgs := make([]kafka.Message, 0, cap(orders))
 
 	for _, o := range orders {
 		orderJSON, err := json.Marshal(o)
