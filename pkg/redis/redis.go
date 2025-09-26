@@ -3,10 +3,11 @@ package redis
 import (
 	"context"
 	"fmt"
-	"github.com/go-redis/redis/v7"
-	"github.com/jaam8/wb_tech_school_l0/pkg/logger"
-	"go.uber.org/zap"
 	"time"
+
+	"github.com/go-redis/redis/v7"
+	"github.com/jaam8/wb_tech_school_l0/backend/pkg/logger"
+	"go.uber.org/zap"
 )
 
 type Config struct {

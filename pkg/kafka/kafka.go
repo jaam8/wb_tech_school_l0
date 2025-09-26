@@ -22,7 +22,6 @@ type Config struct {
 }
 
 func NewReader(ctx context.Context, cfg Config, topic, groupID string) *kafka.Reader {
-	l := logger.GetOrCreateLoggerFromCtx(ctx)
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:        cfg.Brokers,
 		Topic:          topic,
@@ -32,7 +31,7 @@ func NewReader(ctx context.Context, cfg Config, topic, groupID string) *kafka.Re
 		MaxWait:        time.Duration(cfg.MaxWaitMs) * time.Millisecond,
 		CommitInterval: time.Duration(cfg.CommitInterval) * time.Millisecond,
 	})
-	l.Info(ctx, "connected to Kafka topic",
+	logger.Info(ctx, "connected to Kafka topic",
 		zap.Strings("brokers", cfg.Brokers),
 		zap.String("topic", topic),
 		zap.String("group_id", groupID),
@@ -41,7 +40,6 @@ func NewReader(ctx context.Context, cfg Config, topic, groupID string) *kafka.Re
 }
 
 func NewWriter(ctx context.Context, cfg Config, topic string) *kafka.Writer {
-	l := logger.GetOrCreateLoggerFromCtx(ctx)
 	w := &kafka.Writer{
 		Addr:         kafka.TCP(cfg.Brokers...),
 		Topic:        topic,
@@ -50,7 +48,7 @@ func NewWriter(ctx context.Context, cfg Config, topic string) *kafka.Writer {
 		Async:        false,
 	}
 
-	l.Info(ctx, "created Kafka writer",
+	logger.Info(ctx, "created Kafka writer",
 		zap.Strings("brokers", cfg.Brokers),
 		zap.String("topic", topic),
 	)
