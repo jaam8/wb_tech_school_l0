@@ -6,7 +6,7 @@ type Payment struct {
 	Provider     string `json:"provider" db:"provider" validate:"required,min=2,max=25"`
 	Currency     string `json:"currency" db:"currency" validate:"required,iso4217"`
 	Amount       int    `json:"amount" db:"amount" validate:"required,gt=0"`
-	PaymentDt    int    `json:"payment_dt" db:"payment_dt" validate:"required,datetime"`
+	PaymentDt    int    `json:"payment_dt" db:"payment_dt" validate:"required"`
 	Bank         string `json:"bank" db:"bank" validate:"required,oneof=sber alpha vtb tinkoff"`
 	DeliveryCost int    `json:"delivery_cost" db:"delivery_cost" validate:"required,gte=0"`
 	GoodsTotal   int    `json:"goods_total" db:"goods_total" validate:"required,gt=0"`

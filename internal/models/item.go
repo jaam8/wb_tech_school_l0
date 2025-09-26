@@ -4,7 +4,7 @@ type Item struct {
 	ChrtId      int    `json:"chrt_id" db:"chrt_id" validate:"required,gt=0"`
 	TrackNumber string `json:"track_number" db:"track_number" validate:"required,min=10,max=50"`
 	Price       int    `json:"price" db:"price" validate:"required,gt=0"`
-	Rid         string `json:"rid" db:"rid" validate:"required,min=10,max=50"`
+	Rid         string `json:"rid" db:"rid" validate:"required,hexadecimal,min=10,max=50"`
 	Name        string `json:"name" db:"name" validate:"required,min=3,max=100"`
 	Sale        int    `json:"sale" db:"sale" validate:"required,gte=0,lte=99"`
 	Size        string `json:"size" db:"size" validate:"required,min=1"`
