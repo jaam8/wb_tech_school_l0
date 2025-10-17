@@ -22,15 +22,64 @@ func NewPostgresAdapter(pool *pgxpool.Pool) *PostgresAdapter {
 
 func (a *PostgresAdapter) GetOrder(ctx context.Context, id string) (*models.Order, error) {
 	query := `
-	SELECT * FROM orders 
-	WHERE order_uid = $1;
+	SELECT
+    o.order_uid,
+    o.track_number,
+    o.entry,
+    o.locale,
+    o.internal_signature,
+    o.customer_id,
+    o.delivery_service,
+    o.shardkey,
+    o.sm_id,
+    o.date_created,
+    o.oof_shard,
+
+    d.name,
+    d.phone,
+    d.zip,
+    d.city,
+    d.address,
+    d.region,
+    d.email,
+
+    p.transaction,
+    p.request_id,
+    p.currency,
+    p.provider,
+    p.amount,
+    p.payment_dt,
+    p.bank,
+    p.delivery_cost,
+    p.goods_total,
+    p.custom_fee
+	
+	FROM orders o
+	JOIN deliveries d ON d.id = o.delivery_id
+	JOIN payments p ON p.transaction = o.payment_transaction
+	WHERE o.order_uid = $1
 `
-	rows, err := a.pool.Query(ctx, query, id)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	order, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[models.Order])
+
+	var order models.Order
+	err := a.pool.QueryRow(ctx, query, id).Scan(
+		&order.OrderUid, &order.TrackNumber,
+		&order.Entry, &order.Locale,
+		&order.InternalSignature, &order.CustomerId,
+		&order.DeliveryService, &order.Shardkey,
+		&order.SmId, &order.DateCreated,
+		&order.OofShard,
+
+		&order.Delivery.Name,
+		&order.Delivery.Phone, &order.Delivery.Zip,
+		&order.Delivery.City, &order.Delivery.Address,
+		&order.Delivery.Region, &order.Delivery.Email,
+
+		&order.Payment.Transaction, &order.Payment.RequestId,
+		&order.Payment.Currency, &order.Payment.Provider,
+		&order.Payment.Amount, &order.Payment.PaymentDt,
+		&order.Payment.Bank, &order.Payment.DeliveryCost,
+		&order.Payment.GoodsTotal, &order.Payment.CustomFee,
+	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrOrderNotFound
@@ -38,6 +87,24 @@ func (a *PostgresAdapter) GetOrder(ctx context.Context, id string) (*models.Orde
 		return nil, err
 	}
 
+	query = `
+	SELECT i.* 
+	FROM orders o 
+	JOIN order_items oi ON oi.order_uid = o.order_uid
+	JOIN items i ON i.chrt_id = oi.item_chrt_id
+	WHERE o.order_uid = $1
+`
+	rows, err := a.pool.Query(ctx, query, order.OrderUid)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrOrderItemsNotFound
+		}
+	}
+	items, err := pgx.CollectRows(rows, pgx.RowToStructByName[models.Item])
+	if err != nil {
+		return nil, err
+	}
+	order.Items = items
 	return &order, nil
 }
 
