@@ -16,7 +16,7 @@ type BrokerAdapter interface {
 }
 
 type CacheAdapter interface {
-	GetOrder(ctx context.Context, id string) (*models.Order, error)
-	SaveOrder(ctx context.Context, order *models.Order) error
-	SaveOrders(ctx context.Context, orders ...*models.Order) error
+	GetOrder(id string) (*models.Order, error)
+	SaveOrder(key string, val *models.Order) error
+	//SaveOrders(ctx context.Context, orders ...*models.Order) error
 }
