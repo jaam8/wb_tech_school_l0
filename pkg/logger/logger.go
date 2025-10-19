@@ -108,3 +108,12 @@ func Fatal(ctx context.Context, msg string, fields ...zap.Field) {
 	fields = TryAppendRequestIDFromContext(ctx, fields)
 	GetLoggerFromCtx(ctx).l.Fatal(msg, fields...)
 }
+
+func WithCtx(ctx context.Context, fields ...zap.Field) context.Context {
+	logger := GetLoggerFromCtx(ctx).l.With(fields...)
+	return context.WithValue(ctx, KeyForLogger, logger)
+}
+
+func With(ctx context.Context, fields ...zap.Field) context.Context {
+	return WithCtx(ctx, fields...)
+}
