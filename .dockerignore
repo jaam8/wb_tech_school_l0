@@ -1,0 +1,5 @@
+docs/.git
+.idea/
+.vscode/
+README.md
+Makefile
