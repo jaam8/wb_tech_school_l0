@@ -15,7 +15,7 @@ func init() {
 			return false
 		}
 		for _, r := range val {
-			if !(unicode.IsLetter(r) || unicode.IsSpace(r) || r == '.') {
+			if !(unicode.IsLetter(r) || unicode.IsSpace(r) || r == '.' || r == '-') {
 				return false
 			}
 		}

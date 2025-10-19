@@ -6,7 +6,7 @@ type Item struct {
 	Price       int    `json:"price" db:"price" validate:"required,gt=0"`
 	Rid         string `json:"rid" db:"rid" validate:"required,hexadecimal,min=10,max=50"`
 	Name        string `json:"name" db:"name" validate:"required,min=3,max=100"`
-	Sale        int    `json:"sale" db:"sale" validate:"required,gte=0,lte=99"`
+	Sale        int    `json:"sale" db:"sale" validate:"gte=0,lte=99"`
 	Size        string `json:"size" db:"size" validate:"required,min=1"`
 	TotalPrice  int    `json:"total_price" db:"total_price" validate:"required,gt=0"`
 	NmId        int    `json:"nm_id" db:"nm_id" validate:"required,gt=0"`
