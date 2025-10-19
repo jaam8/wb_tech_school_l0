@@ -44,6 +44,7 @@ func (s *Service) HandleOrdersEvents(ctx context.Context, batchSize int, flushTi
 				zap.Error(err),
 			)
 		}
+		logger.Info(ctx, "saved orders batch to storage", zap.Int("count", len(batch)))
 		batch = nil
 	}
 
@@ -58,7 +59,7 @@ func (s *Service) HandleOrdersEvents(ctx context.Context, batchSize int, flushTi
 		default:
 			event, err := s.broker.ConsumeOrderEvent(ctx)
 			if err != nil {
-				logger.Error(ctx, "failed to consume order event:",
+				logger.Error(ctx, "failed to consume order event",
 					zap.Error(err),
 				)
 				continue
@@ -68,7 +69,7 @@ func (s *Service) HandleOrdersEvents(ctx context.Context, batchSize int, flushTi
 				continue
 			}
 			if err = event.Validate(); err != nil {
-				logger.Error(ctx, "failed to validate order event",
+				logger.Warn(ctx, "failed to validate order event",
 					zap.String("order_uid", event.OrderUid),
 					zap.Error(err),
 				)
@@ -85,39 +86,30 @@ func (s *Service) HandleOrdersEvents(ctx context.Context, batchSize int, flushTi
 }
 
 func (s *Service) GetOrder(ctx context.Context, id string) (*models.Order, error) {
+	logger.With(ctx,
+		zap.String("order_uid", id),
+	)
+
 	if id == "" {
 		return nil, fmt.Errorf("empty order id")
 	}
-	logger.Info(ctx, "get order with id",
-		zap.String("id", id),
-	)
+	logger.Info(ctx, "get order with id")
 
-	order, err := s.cache.GetOrder(ctx, id)
+	order, err := s.cache.GetOrder(id)
 	if err != nil {
-		logger.Warn(ctx, "failed to get order from cache",
-			zap.String("id", id),
-			zap.Error(err),
-		)
+		logger.Warn(ctx, "failed to get order from cache", zap.Error(err))
 
 		order, err = s.storage.GetOrder(ctx, id)
 		if err != nil {
-			logger.Error(ctx, "failed to get order from storage",
-				zap.String("id", id),
-				zap.Error(err),
-			)
+			logger.Error(ctx, "failed to get order from storage", zap.Error(err))
 			return nil, fmt.Errorf("failed to get order: %w", err)
 		}
-		err = s.cache.SaveOrder(ctx, order)
+		err = s.cache.SaveOrder(id, order)
 		if err != nil {
-			logger.Error(ctx, "failed to save order to cache",
-				zap.String("id", id),
-				zap.Error(err),
-			)
+			logger.Error(ctx, "failed to save order to cache", zap.Error(err))
 		}
 	}
 
-	logger.Info(ctx, "got order",
-		zap.String("order_uid", order.OrderUid),
-	)
+	logger.Info(ctx, "got order")
 	return order, nil
 }
