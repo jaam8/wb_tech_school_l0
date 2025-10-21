@@ -7,6 +7,7 @@ import (
 
 	"github.com/jaam8/wb_tech_school_l0/internal/models"
 	"github.com/jaam8/wb_tech_school_l0/internal/ports"
+	errs "github.com/jaam8/wb_tech_school_l0/pkg/errors"
 	"github.com/jaam8/wb_tech_school_l0/pkg/logger"
 	"go.uber.org/zap"
 )
@@ -70,7 +71,7 @@ func (s *Service) HandleOrdersEvents(ctx context.Context, batchSize int, flushTi
 			}
 			if err = event.Validate(); err != nil {
 				logger.Warn(ctx, "failed to validate order event",
-					zap.String("order_uid", event.OrderUid),
+					zap.String("order_uid", event.OrderUID),
 					zap.Error(err),
 				)
 				continue
@@ -91,9 +92,9 @@ func (s *Service) GetOrder(ctx context.Context, id string) (*models.Order, error
 	)
 
 	if id == "" {
-		return nil, fmt.Errorf("empty order id")
+		return nil, errs.ErrEmptyOrderUID
 	}
-	logger.Info(ctx, "get order with id")
+	logger.Info(ctx, "get order")
 
 	order, err := s.cache.GetOrder(id)
 	if err != nil {

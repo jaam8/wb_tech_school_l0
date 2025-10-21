@@ -1,17 +1,17 @@
 package models
 
 type Item struct {
-	ChrtId      int    `json:"chrt_id" db:"chrt_id" validate:"required,gt=0"`
-	TrackNumber string `json:"track_number" db:"track_number" validate:"required,min=10,max=50"`
-	Price       int    `json:"price" db:"price" validate:"required,gt=0"`
-	Rid         string `json:"rid" db:"rid" validate:"required,hexadecimal,min=10,max=50"`
-	Name        string `json:"name" db:"name" validate:"required,min=3,max=100"`
-	Sale        int    `json:"sale" db:"sale" validate:"gte=0,lte=99"`
-	Size        string `json:"size" db:"size" validate:"required,min=1"`
-	TotalPrice  int    `json:"total_price" db:"total_price" validate:"required,gt=0"`
-	NmId        int    `json:"nm_id" db:"nm_id" validate:"required,gt=0"`
-	Brand       string `json:"brand" db:"brand" validate:"required,min=3,max=50"`
-	Status      int    `json:"status" db:"status" validate:"required,gt=0"`
+	ChrtID      int    `db:"chrt_id"      json:"chrt_id"      validate:"required,gt=0"`
+	TrackNumber string `db:"track_number" json:"track_number" validate:"required,min=10,max=50"`
+	Price       int    `db:"price"        json:"price"        validate:"required,gt=0"`
+	Rid         string `db:"rid"          json:"rid"          validate:"required,hexadecimal,min=10,max=50"`
+	Name        string `db:"name"         json:"name"         validate:"required,min=3,max=100"`
+	Sale        int    `db:"sale"         json:"sale"         validate:"gte=0,lte=99"`
+	Size        string `db:"size"         json:"size"         validate:"required,min=1"`
+	TotalPrice  int    `db:"total_price"  json:"total_price"  validate:"required,gt=0"`
+	NmID        int    `db:"nm_id"        json:"nm_id"        validate:"required,gt=0"`
+	Brand       string `db:"brand"        json:"brand"        validate:"required,min=3,max=50"`
+	Status      int    `db:"status"       json:"status"       validate:"required,gt=0"`
 }
 
 func (i *Item) Validate() error {

@@ -1,16 +1,16 @@
 package models
 
 type Payment struct {
-	Transaction  string `json:"transaction" db:"transaction" validate:"required,min=10,max=60"`
-	RequestId    string `json:"request_id" db:"request_id" validate:"required"`
-	Provider     string `json:"provider" db:"provider" validate:"required,min=2,max=25"`
-	Currency     string `json:"currency" db:"currency" validate:"required,iso4217"`
-	Amount       int    `json:"amount" db:"amount" validate:"required,gt=0"`
-	PaymentDt    int    `json:"payment_dt" db:"payment_dt" validate:"required"`
-	Bank         string `json:"bank" db:"bank" validate:"required,oneof=sber alpha vtb tinkoff"`
-	DeliveryCost int    `json:"delivery_cost" db:"delivery_cost" validate:"gte=0"`
-	GoodsTotal   int    `json:"goods_total" db:"goods_total" validate:"required,gt=0"`
-	CustomFee    int    `json:"custom_fee" db:"custom_fee" validate:"gte=0,lte=99"`
+	Transaction  string `db:"transaction"   json:"transaction"   validate:"required,min=10,max=60"`
+	RequestID    string `db:"request_id"    json:"request_id"    validate:"required"`
+	Provider     string `db:"provider"      json:"provider"      validate:"required,min=2,max=25"`
+	Currency     string `db:"currency"      json:"currency"      validate:"required,iso4217"`
+	Amount       int    `db:"amount"        json:"amount"        validate:"required,gt=0"`
+	PaymentDt    int    `db:"payment_dt"    json:"payment_dt"    validate:"required"`
+	Bank         string `db:"bank"          json:"bank"          validate:"required,oneof=sber alpha vtb tinkoff"`
+	DeliveryCost int    `db:"delivery_cost" json:"delivery_cost" validate:"gte=0"`
+	GoodsTotal   int    `db:"goods_total"   json:"goods_total"   validate:"required,gt=0"`
+	CustomFee    int    `db:"custom_fee"    json:"custom_fee"    validate:"gte=0,lte=99"`
 }
 
 func (p *Payment) Validate() error {

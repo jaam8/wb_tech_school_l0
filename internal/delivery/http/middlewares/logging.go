@@ -13,7 +13,6 @@ func LogMiddleware() fiber.Handler {
 		ctx, err := logger.New(c.UserContext())
 		if err != nil {
 			ctx, _ = logger.New(context.Background())
-
 		}
 
 		c.SetUserContext(ctx)

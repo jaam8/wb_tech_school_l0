@@ -12,13 +12,13 @@ import (
 )
 
 type Config struct {
-	Host     string `yaml:"host" env:"HOST" env-default:"localhost"`
-	Port     uint16 `yaml:"port" env:"PORT" env-default:"5432"`
-	Username string `yaml:"user" env:"USER" env-default:"postgres"`
-	Password string `yaml:"password" env:"PASSWORD" env-default:"1234"`
-	Database string `yaml:"db" env:"DB" env-default:"postgres"`
-	MaxConns int32  `yaml:"max_conns" env:"MAX_CONNS" env-default:"10"`
-	MinConns int32  `yaml:"min_conns" env:"MIN_CONNS" env-default:"5"`
+	Host     string `env:"HOST"      env-default:"localhost" yaml:"host"`
+	Port     uint16 `env:"PORT"      env-default:"5432"      yaml:"port"`
+	Username string `env:"USER"      env-default:"postgres"  yaml:"user"`
+	Password string `env:"PASSWORD"  env-default:"1234"      yaml:"password"`
+	Database string `env:"DB"        env-default:"postgres"  yaml:"db"`
+	MaxConns int32  `env:"MAX_CONNS" env-default:"10"        yaml:"max_conns"`
+	MinConns int32  `env:"MIN_CONNS" env-default:"5"         yaml:"min_conns"`
 }
 
 func New(ctx context.Context, config Config) (*pgxpool.Pool, error) {
@@ -41,18 +41,19 @@ func Migrate(ctx context.Context, config Config, migrationsPath string) error {
 
 	db, err := goose.OpenDBWithDriver("pgx", dsn)
 	if err != nil {
-		log.Fatalf("failed to open db: %v", err)
+		return fmt.Errorf("failed to open db: %v", err)
 	}
 	defer db.Close()
 
 	if err = goose.SetDialect("postgres"); err != nil {
-		log.Fatalf("failed to set dialect: %v", err)
+		return fmt.Errorf("failed to set dialect: %v", err)
 	}
 
 	if err = goose.Up(db, migrationsPath); err != nil && !errors.Is(err, goose.ErrNoMigrations) {
-		log.Fatalf("failed to run migrations: %v", err)
+		return fmt.Errorf("failed to run migrations: %v", err)
 	}
 	log.Println("migrated successfully")
+
 	return nil
 }
 
@@ -64,5 +65,6 @@ func (c *Config) GetDsn() string {
 		c.Port,
 		c.Database,
 	)
+
 	return dsn
 }

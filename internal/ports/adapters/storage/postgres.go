@@ -62,11 +62,11 @@ func (a *PostgresAdapter) GetOrder(ctx context.Context, id string) (*models.Orde
 
 	var order models.Order
 	err := a.pool.QueryRow(ctx, query, id).Scan(
-		&order.OrderUid, &order.TrackNumber,
+		&order.OrderUID, &order.TrackNumber,
 		&order.Entry, &order.Locale,
-		&order.InternalSignature, &order.CustomerId,
+		&order.InternalSignature, &order.CustomerID,
 		&order.DeliveryService, &order.Shardkey,
-		&order.SmId, &order.DateCreated,
+		&order.SmID, &order.DateCreated,
 		&order.OofShard,
 
 		&order.Delivery.Name,
@@ -74,7 +74,7 @@ func (a *PostgresAdapter) GetOrder(ctx context.Context, id string) (*models.Orde
 		&order.Delivery.City, &order.Delivery.Address,
 		&order.Delivery.Region, &order.Delivery.Email,
 
-		&order.Payment.Transaction, &order.Payment.RequestId,
+		&order.Payment.Transaction, &order.Payment.RequestID,
 		&order.Payment.Currency, &order.Payment.Provider,
 		&order.Payment.Amount, &order.Payment.PaymentDt,
 		&order.Payment.Bank, &order.Payment.DeliveryCost,
@@ -94,7 +94,7 @@ func (a *PostgresAdapter) GetOrder(ctx context.Context, id string) (*models.Orde
 	JOIN items i ON i.chrt_id = oi.item_chrt_id
 	WHERE o.order_uid = $1
 `
-	rows, err := a.pool.Query(ctx, query, order.OrderUid)
+	rows, err := a.pool.Query(ctx, query, order.OrderUID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrOrderItemsNotFound
@@ -105,6 +105,7 @@ func (a *PostgresAdapter) GetOrder(ctx context.Context, id string) (*models.Orde
 		return nil, err
 	}
 	order.Items = items
+
 	return &order, nil
 }
 
@@ -142,7 +143,7 @@ func (a *PostgresAdapter) SaveOrders(ctx context.Context, orders ...*models.Orde
 	`
 
 	for _, order := range orders {
-		var deliveryId uint64
+		var deliveryID uint64
 		err = tx.QueryRow(ctx, deliveriesQuery,
 			order.Delivery.Name,
 			order.Delivery.Phone,
@@ -151,14 +152,14 @@ func (a *PostgresAdapter) SaveOrders(ctx context.Context, orders ...*models.Orde
 			order.Delivery.Address,
 			order.Delivery.Region,
 			order.Delivery.Email,
-		).Scan(&deliveryId)
+		).Scan(&deliveryID)
 		if err != nil {
 			return err
 		}
 
 		_, err = tx.Exec(ctx, paymentsQuery,
 			order.Payment.Transaction,
-			order.Payment.RequestId,
+			order.Payment.RequestID,
 			order.Payment.Currency,
 			order.Payment.Provider,
 			order.Payment.Amount,
@@ -173,17 +174,17 @@ func (a *PostgresAdapter) SaveOrders(ctx context.Context, orders ...*models.Orde
 		}
 
 		_, err = tx.Exec(ctx, ordersQuery,
-			order.OrderUid,
+			order.OrderUID,
 			order.TrackNumber,
 			order.Entry,
-			deliveryId,
+			deliveryID,
 			order.Payment.Transaction,
 			order.Locale,
 			order.InternalSignature,
-			order.CustomerId,
+			order.CustomerID,
 			order.DeliveryService,
 			order.Shardkey,
-			order.SmId,
+			order.SmID,
 			order.DateCreated,
 			order.OofShard,
 		)
@@ -194,7 +195,7 @@ func (a *PostgresAdapter) SaveOrders(ctx context.Context, orders ...*models.Orde
 		batch := &pgx.Batch{}
 		for _, item := range order.Items {
 			batch.Queue(itemsQuery,
-				item.ChrtId,
+				item.ChrtID,
 				item.TrackNumber,
 				item.Price,
 				item.Rid,
@@ -202,7 +203,7 @@ func (a *PostgresAdapter) SaveOrders(ctx context.Context, orders ...*models.Orde
 				item.Sale,
 				item.Size,
 				item.TotalPrice,
-				item.NmId,
+				item.NmID,
 				item.Brand,
 				item.Status,
 			)
@@ -210,7 +211,7 @@ func (a *PostgresAdapter) SaveOrders(ctx context.Context, orders ...*models.Orde
 			batch.Queue(`
         INSERT INTO order_items (order_uid, item_chrt_id)
         VALUES ($1,$2)`,
-				order.OrderUid, item.ChrtId,
+				order.OrderUID, item.ChrtID,
 			)
 		}
 

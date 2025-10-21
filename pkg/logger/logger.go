@@ -11,8 +11,11 @@ import (
 type key string
 
 const (
-	KeyForLogger    key = "logger"
-	KeyForRequestID key = "request_id"
+	KeyForLogger    key    = "logger"
+	KeyForRequestID key    = "request_id"
+	KeyForLogLevel  key    = "log_level"
+	DebugLvl        string = "debug"
+	InfoLvl         string = "info"
 )
 
 type Logger struct {
@@ -28,9 +31,9 @@ func NewLogger(logLevel string) (*Logger, error) {
 
 	var level zapcore.Level
 	switch logLevel {
-	case "debug":
+	case DebugLvl:
 		level = zap.DebugLevel
-	case "info":
+	case InfoLvl:
 		level = zap.InfoLevel
 	}
 	config.Level.SetLevel(level)
@@ -46,7 +49,7 @@ func NewLogger(logLevel string) (*Logger, error) {
 }
 
 func New(ctx context.Context) (context.Context, error) {
-	logLevel, ok := ctx.Value("log_level").(string)
+	logLevel, ok := ctx.Value(KeyForLogLevel).(string)
 	if !ok {
 		logLevel = "debug"
 	}
@@ -57,6 +60,7 @@ func New(ctx context.Context) (context.Context, error) {
 	}
 
 	ctx = context.WithValue(ctx, KeyForLogger, loggerStruct)
+
 	return ctx, nil
 }
 
@@ -68,18 +72,20 @@ func TryAppendRequestIDFromContext(ctx context.Context, fields []zap.Field) []za
 	if ctx.Value(KeyForRequestID) != nil {
 		fields = append(fields, zap.String(string(KeyForRequestID), ctx.Value(KeyForRequestID).(string)))
 	}
+
 	return fields
 }
 
 func GetOrCreateLoggerFromCtx(ctx context.Context) *Logger {
 	logger := GetLoggerFromCtx(ctx)
 	if logger == nil {
-		logLevel, ok := ctx.Value("log_level").(string)
+		logLevel, ok := ctx.Value(KeyForLogLevel).(string)
 		if !ok {
 			logLevel = "debug"
 		}
 		logger, _ = NewLogger(logLevel)
 	}
+
 	return logger
 }
 
@@ -89,7 +95,6 @@ func Debug(ctx context.Context, msg string, fields ...zap.Field) {
 }
 
 func Info(ctx context.Context, msg string, fields ...zap.Field) {
-
 	fields = TryAppendRequestIDFromContext(ctx, fields)
 	GetLoggerFromCtx(ctx).l.Info(msg, fields...)
 }
@@ -109,11 +114,10 @@ func Fatal(ctx context.Context, msg string, fields ...zap.Field) {
 	GetLoggerFromCtx(ctx).l.Fatal(msg, fields...)
 }
 
-func WithCtx(ctx context.Context, fields ...zap.Field) context.Context {
-	logger := GetLoggerFromCtx(ctx).l.With(fields...)
-	return context.WithValue(ctx, KeyForLogger, logger)
-}
-
 func With(ctx context.Context, fields ...zap.Field) context.Context {
-	return WithCtx(ctx, fields...)
+	currentLogger := GetLoggerFromCtx(ctx)
+	newZapLogger := currentLogger.l.With(fields...)
+	currentLogger.l = newZapLogger
+
+	return ctx
 }

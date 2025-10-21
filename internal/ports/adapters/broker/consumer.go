@@ -26,5 +26,6 @@ func (a KafkaConsumerAdapter) ConsumeOrderEvent(ctx context.Context) (*models.Or
 	if err != nil {
 		return nil, err
 	}
+
 	return &order, nil
 }

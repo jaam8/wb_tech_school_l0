@@ -20,7 +20,7 @@ func NewHandler(s *service.Service) *Handler {
 	}
 }
 
-// GetOrderById godoc
+// GetOrderByID godoc
 // @Summary get order by id
 // @Description returns an order by its order_uid
 // @Tags order
@@ -31,7 +31,7 @@ func NewHandler(s *service.Service) *Handler {
 // @Failure 404 {object} schemas.ErrorResponse
 // @Failure 500 {object} schemas.ErrorResponse
 // @Router /api/v1/order/{id} [get]
-func (h *Handler) GetOrderById(c *fiber.Ctx) error {
+func (h *Handler) GetOrderByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
 		return c.Status(http.StatusBadRequest).

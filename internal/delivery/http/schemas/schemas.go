@@ -1,6 +1,6 @@
 package schemas
 
 type ErrorResponse struct {
-	Success bool   `json:"success" example:"false"`
-	Error   string `json:"error" example:"error message"`
+	Success bool   `example:"false"         json:"success"`
+	Error   string `example:"error message" json:"error"`
 }

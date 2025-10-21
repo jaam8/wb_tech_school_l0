@@ -28,7 +28,7 @@ func (a *KafkaProducerAdapter) SendOrder(ctx context.Context, orders ...models.O
 		}
 
 		msg := kafka.Message{
-			Key:   []byte(o.OrderUid),
+			Key:   []byte(o.OrderUID),
 			Value: orderJSON,
 		}
 

@@ -1,8 +1,9 @@
-package lru_cache
+package lrucache
 
 import (
 	"container/list"
 	"context"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -45,10 +46,17 @@ func (c *InMemoryCache) Set(key, value interface{}) error {
 
 	if elem, ok := c.items[key]; ok {
 		c.list.MoveToFront(elem)
-		itm := elem.Value.(*item)
+		itm, ok := elem.Value.(*item)
+		if !ok {
+			return ErrUnexpectedType
+		}
 		itm.value = value
 		itm.expiredAt = time.Now().Add(c.TTL)
 		return nil
+	}
+
+	if value == nil {
+		return fmt.Errorf("cannot set nil value to key %v", key)
 	}
 
 	itm := &item{
@@ -63,9 +71,14 @@ func (c *InMemoryCache) Set(key, value interface{}) error {
 		last := c.list.Back()
 		if last != nil {
 			c.list.Remove(last)
-			delete(c.items, last.Value.(*item).key)
+			lastItem, ok := last.Value.(*item)
+			if !ok {
+				return ErrUnexpectedType
+			}
+			delete(c.items, lastItem.key)
 		}
 	}
+
 	return nil
 }
 
@@ -79,13 +92,21 @@ func (c *InMemoryCache) Get(key interface{}) (interface{}, error) {
 		return nil, ErrNotFound
 	}
 
-	itm := elem.Value.(*item)
+	itm, ok := elem.Value.(*item)
+	if !ok {
+		return nil, ErrUnexpectedType
+	}
+
+	if itm.value == nil {
+		return nil, ErrNotFound
+	}
 
 	if time.Now().After(itm.expiredAt) {
 		return nil, ErrExpired
 	}
 
 	c.list.MoveToFront(elem)
+
 	return itm.value, nil
 }
 
@@ -117,7 +138,10 @@ func (c *InMemoryCache) StartCleanup(ctx context.Context, interval time.Duration
 			case <-ticker.C:
 				c.mu.Lock()
 				for key, elem := range c.items {
-					itm := elem.Value.(*item)
+					itm, ok := elem.Value.(*item)
+					if !ok {
+						continue
+					}
 					if time.Now().After(itm.expiredAt) {
 						c.list.Remove(elem)
 						delete(c.items, key)

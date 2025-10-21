@@ -2,7 +2,6 @@ package cache
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/jaam8/wb_tech_school_l0/internal/models"
 	errs "github.com/jaam8/wb_tech_school_l0/pkg/errors"
@@ -30,8 +29,9 @@ func (a *InMemoryCacheAdapter) GetOrder(key string) (*models.Order, error) {
 
 	order, ok := val.(*models.Order)
 	if !ok {
-		return nil, fmt.Errorf("invalid type for order")
+		return nil, errs.ErrOrderNotFound
 	}
+
 	return order, nil
 }
 

@@ -1,0 +1,101 @@
+version: "2"
+
+run:
+  modules-download-mode: readonly
+  issues-exit-code: 1
+  tests: true
+linters:
+  default: all
+  enable:
+    - whitespace
+    - testifylint
+    - tagalign
+    - revive
+    - mnd
+    - intrange
+    - gocritic
+    - forbidigo
+    - forcetypeassert
+    - errcheck
+    - gosec
+    - perfsprint
+  disable:
+    - cyclop
+    - errorlint
+    - err113
+    - depguard
+    - exhaustruct
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+    - lll
+    - godot
+    - nlreturn
+    - noinlineerr
+    - nosprintfhostport
+    - predeclared
+    - paralleltest
+    - tagliatelle
+    - testpackage
+    - varnamelen
+    - wsl
+    - wsl_v5
+    - wrapcheck
+
+  exclusions:
+    generated: lax
+    warn-unused: true
+    rules:
+      - path: _test\.go
+        linters:
+         - gocyclo
+         - errcheck
+         - dupl
+         - gosec
+         - perfsprint
+         - forcetypeassert
+
+      - linters:
+          - staticcheck
+          - revive
+        text: "package-comments:|exported:|unused-parameter:|redefines-builtin-id:|blank-imports:|QF1001:"
+
+#      - linters:
+#          - nlreturn
+#        source: "^[ \t]*return[ \t]*$|continue|err"
+#        path-except: _test\.go
+
+      - linters:
+          - gocritic
+        path: main\.go
+
+      - linters:
+          - intrange
+          - mnd
+        source: "gofakeit"
+
+      - path: logger\.go
+        linters:
+          - forcetypeassert
+
+      - linters:
+          - errcheck
+          - gosec
+        source: "Close|validate"
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
